@@ -1,3 +1,7 @@
+## Fork by emopedia
+
+Adds MySQL database support which in turn allows vanish state to transfer between all servers connected to the same database.
+
 VanishNoPacket  
 by Matt Baxter
   
