@@ -30,6 +30,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.kitteh.vanish.data.MySQLManager; // Import MySQLManager
 import org.kitteh.vanish.hooks.HookManager;
 import org.kitteh.vanish.hooks.HookManager.HookType;
 import org.kitteh.vanish.listeners.ListenEntity;
@@ -50,6 +51,7 @@ public final class VanishPlugin extends JavaPlugin implements Listener {
     private final HookManager hookManager = new HookManager(this);
     private VanishManager manager;
     private boolean paper;
+    private MySQLManager mySQLManager;
 
     /**
      * Informs VNP that a user has closed their fake chest
@@ -110,6 +112,15 @@ public final class VanishPlugin extends JavaPlugin implements Listener {
      */
     public @NonNull VanishManager getManager() {
         return this.manager;
+    }
+
+    /**
+     * Gets the MySQL manager
+     *
+     * @return the MySQLManager
+     */
+    public @Nullable MySQLManager getMySQLManager() {
+        return this.mySQLManager;
     }
 
     /**
@@ -209,6 +220,9 @@ public final class VanishPlugin extends JavaPlugin implements Listener {
         }
         this.hookManager.onDisable();
         this.manager.onPluginDisable();
+        if (this.mySQLManager != null) {
+            this.mySQLManager.disconnect();
+        }
         this.getLogger().info(this.getCurrentVersion() + " unloaded.");
     }
 
@@ -268,6 +282,10 @@ public final class VanishPlugin extends JavaPlugin implements Listener {
 
         Settings.freshStart(this);
 
+        if (this.getConfig().getBoolean("mysql.enabled", false)) {
+            this.mySQLManager = new MySQLManager(this);
+        }
+
         if (this.getConfig().getBoolean("hooks.essentials", false)) {
             this.hookManager.getHook(HookType.Essentials).onEnable();
         }
@@ -316,6 +334,15 @@ public final class VanishPlugin extends JavaPlugin implements Listener {
     public void reload() {
         this.reloadConfig();
         Settings.freshStart(this);
+        if (this.getConfig().getBoolean("mysql.enabled", false)) {
+            if (this.mySQLManager != null) {
+                this.mySQLManager.disconnect();
+            }
+            this.mySQLManager = new MySQLManager(this);
+        } else if (this.mySQLManager != null) {
+            this.mySQLManager.disconnect();
+            this.mySQLManager = null;
+        }
     }
 
     /**

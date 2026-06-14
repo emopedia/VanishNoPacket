@@ -21,6 +21,15 @@ effects:
     lightning:
         count: 30
 
+mysql:
+    enabled: false
+    host: localhost
+    port: 3306
+    database: vanish
+    username: root
+    password: password
+    table: vanished_players
+
 permtest: false
 debug: false
 double-sneak-during-vanish-switches-gamemode:

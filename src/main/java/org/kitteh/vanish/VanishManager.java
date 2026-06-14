@@ -29,6 +29,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.kitteh.vanish.data.MySQLManager; // Import MySQLManager
 import org.kitteh.vanish.event.VanishStatusChangeEvent;
 
 import java.util.Collections;
@@ -96,6 +97,7 @@ public final class VanishManager {
     private final Random random = new Random();
     private final ShowPlayerHandler showPlayer;
     private final NamespacedKey vanishCollideState;
+    private final MySQLManager mySQLManager;
 
     public VanishManager(final @NonNull VanishPlugin plugin) {
         this.plugin = plugin;
@@ -113,6 +115,8 @@ public final class VanishManager {
             }
         });
         this.plugin.getServer().getMessenger().registerOutgoingPluginChannel(this.plugin, VanishManager.VANISH_PLUGIN_CHANNEL);
+
+        this.mySQLManager = plugin.getMySQLManager();
     }
 
     /**
@@ -177,6 +181,9 @@ public final class VanishManager {
         Debuggle.log("Quitting: " + player.getName());
         this.resetSleepingIgnored(player);
         VanishPerms.userQuit(player);
+        if (this.mySQLManager != null) {
+            this.mySQLManager.setVanished(player.getUniqueId(), this.isVanished(player));
+        }
         this.removeVanished(player.getName());
     }
 
@@ -284,6 +291,9 @@ public final class VanishManager {
                 vanishingPlayer.setCollidable(true);
             }
             this.plugin.getLogger().info(vanishingPlayerName + " reappeared.");
+        }
+        if (this.mySQLManager != null) {
+            this.mySQLManager.setVanished(vanishingPlayer.getUniqueId(), vanishing);
         }
         if (effects) {
             final Location oneUp = vanishingPlayer.getLocation().add(0, 1, 0);

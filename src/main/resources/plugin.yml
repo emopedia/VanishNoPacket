@@ -3,8 +3,8 @@ main: org.kitteh.vanish.VanishPlugin
 version: '${vnp-version}'
 website: https://kitteh.org
 softdepend: [Essentials,dynmap,PlaceholderAPI,Vault,squaremap]
-author: mbaxter
-description: Vanish for the distinguished admin
+authors: [mbaxter, emopedia]
+description: Vanish for the distinguished admin. Fork by emopedia
 dev-url: https://dev.bukkit.org/projects/vanish
 api-version: 1.18
 commands:

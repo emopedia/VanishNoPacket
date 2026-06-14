@@ -18,6 +18,7 @@
 package org.kitteh.vanish.listeners;
 
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -38,19 +39,27 @@ public final class ListenPlayerJoin implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     public void onPlayerJoinEarly(@NonNull PlayerJoinEvent event) {
-        event.getPlayer().setMetadata("vanished", new LazyMetadataValue(this.plugin, CacheStrategy.NEVER_CACHE, new VanishCheck(this.plugin.getManager(), event.getPlayer().getName())));
-        this.plugin.getManager().resetSeeing(event.getPlayer());
-        if (VanishPerms.joinVanished(event.getPlayer())) {
-            this.plugin.getManager().toggleVanishQuiet(event.getPlayer(), false);
-            this.plugin.hooksVanish(event.getPlayer());
+        final Player player = event.getPlayer();
+        player.setMetadata("vanished", new LazyMetadataValue(this.plugin, CacheStrategy.NEVER_CACHE, new VanishCheck(this.plugin.getManager(), player.getName())));
+        this.plugin.getManager().resetSeeing(player);
+
+        boolean vanishedFromDB = false;
+        if (this.plugin.getMySQLManager() != null) {
+            vanishedFromDB = this.plugin.getMySQLManager().isVanished(player.getUniqueId());
+            this.plugin.getMySQLManager().removePlayer(player.getUniqueId());
         }
-        this.plugin.hooksJoin(event.getPlayer());
+
+        if (VanishPerms.joinVanished(player) || vanishedFromDB) {
+            this.plugin.getManager().toggleVanishQuiet(player, false);
+            this.plugin.hooksVanish(player);
+        }
+        this.plugin.hooksJoin(player);
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerJoinLate(@NonNull PlayerJoinEvent event) {
         final StringBuilder statusUpdate = new StringBuilder();
-        if (VanishPerms.joinVanished(event.getPlayer())) {
+        if (this.plugin.getManager().isVanished(event.getPlayer())) {
             String message = ChatColor.DARK_AQUA + "You have joined vanished.";
             if (VanishPerms.canVanish(event.getPlayer())) {
                 message += " To appear: /vanish";
